@@ -1,0 +1,132 @@
+﻿@model QuizDemo.Models.Exam
+
+@{
+	ViewBag.Title = "Quiz";
+}
+
+<script type="text/javascript">
+	$(document).ready(function () {
+		$("#wizard").steps(
+		{
+			autoFocus: true,                                                        //begin with focus on Question 1
+			enableAllSteps: true,                                                   //enable navigation between all questions at all times
+			transitionEffect: "slideLeft",
+			onFinished: function (event, currentIndex) {                            //called when Finish is clicked
+				var html = '';                                                      //holds validation error message
+				var submitme = true;                                                //submitme true if passed validation
+				$(':radio').each(function () {
+					nam = $(this).attr('name');
+					if (!$(':radio[name="' + nam + '"]:checked').length) {          //if no answer selected for this question
+						submitme = false;
+					}
+				});
+				if (submitme == false) {
+					$('.errorDiv').show().addClass('error');                        //display error message
+				}
+				else {                                                              //passed validation
+					$('.errorDiv').hide();                                          //hide the error message
+					$('#first').hide();                                             //hide the old exam
+					$('.footer').hide();                                            //hide the old footer
+					$('.score').show();                                             //display the score
+					$.ajax({ type: "POST", url: "/Exam/Index", data: $("form").serialize(), success: function (data) {$('#result').html(data) }});   //post if passes validation
+				}
+				return submitme;                                                    //return true or false depending if passed validation
+			}
+		});
+	});
+</script>
+<style type="text/css">
+	.error {
+		color: red;
+	}
+
+	.errorDiv {
+		display: none;
+	}
+
+	.correct {
+		background-color: lightgreen;
+	}
+
+	.selected {
+		background-color: lightgray;
+	}
+
+	.wrong {
+		background-color: lightcoral;
+	}
+</style>
+<div class="score errorDiv alert-info">
+	<strong>
+		Your grade is:
+		@Html.DisplayFor(model => Model.GradePoint)%
+	</strong>
+</div><div id="result"></div>                 <!--Container is filled with the graded exam-->
+<div id="first">
+	<!--this div is hidden after posting exam-->
+	<h2>Common Sense</h2>
+
+	@using (Ajax.BeginForm("Index", "exam", new AjaxOptions { }))
+	{
+		<div class="container" id="wizard">
+			@Html.AntiForgeryToken()
+			@for (int i = 0; i < Model.Questions.Count; i++)
+			{
+				<h1></h1>               <!--h1 tag is the default header tag for jQuery.steps-->
+				<div>
+					<!--this div is the default body tag of a step-->
+					<strong>@Html.DisplayFor(model => Model.Questions[i].Text)</strong>
+					<br />
+					<table>
+						@for (int j = 0; j < Model.Questions[i].Answers.Count(); j++)
+						{
+							<tr>
+								<td>
+									@if (Model.Questions[i].Answers[j].IsSelected)
+									{
+										if (Model.Questions[i].Answers[j].IsAnswer)    //if correct answer selected then highlight green
+										{
+											<div class="correct">
+												@Html.RadioButtonFor(model => Model.Questions[i].CorrectId, Model.Questions[i].Answers.ElementAt(j).AnswerId)
+												@Html.DisplayFor(model => Model.Questions[i].Answers.ElementAt(j).Text)
+											</div>
+										}
+										else                                            //if wrong answer selected then highlight red
+										{
+											<div class="wrong">
+												@Html.RadioButtonFor(model => Model.Questions[i].CorrectId, Model.Questions[i].Answers.ElementAt(j).AnswerId)
+												@Html.DisplayFor(model => Model.Questions[i].Answers.ElementAt(j).Text)
+											</div>
+										}
+									}
+									else if (Model.Questions[i].Answers[j].IsAnswer)    //non-selected correct answer highlight gray
+									{
+										<div class="selected">
+											@Html.RadioButtonFor(model => Model.Questions[i].CorrectId, Model.Questions[i].Answers.ElementAt(j).AnswerId)
+											@Html.DisplayFor(model => Model.Questions[i].Answers.ElementAt(j).Text)
+										</div>
+									}
+									else
+									{
+										@Html.RadioButtonFor(model => Model.Questions[i].CorrectId, Model.Questions[i].Answers.ElementAt(j).AnswerId)
+										@Html.DisplayFor(model => Model.Questions[i].Answers.ElementAt(j).Text)
+									}
+								</td>
+							</tr>}
+					</table>
+					@if (Model.IsGraded)                                                //if this is a graded exam then display hints
+					{
+						<br />
+						<strong>Hint:</strong>
+						@Html.DisplayFor(model => Model.Questions[i].Hint)
+					}
+				</div>
+				@Html.HiddenFor(model => Model.Questions[i].QuestionId)             //hidden field that remembers which questions were given
+			}
+		</div>
+
+		<div class="errorDiv">Please give an answer for every question.</div><!--This is hidden div contains validation error messages-->
+	}
+</div>
+<script src="~/Scripts/jquery.steps.min.js" type="text/javascript"></script>
+<link href="~/Content/jquery.steps.css" rel="stylesheet" />
