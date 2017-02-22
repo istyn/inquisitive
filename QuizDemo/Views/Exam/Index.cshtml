@@ -27,8 +27,16 @@
 					$('.errorDiv').hide();                                          //hide the error message
 					$('#first').hide();                                             //hide the old exam
 					$('.footer').hide();                                            //hide the old footer
-					$('.score').show();                                             //display the score
-					$.ajax({ type: "POST", url: "/Exam/Index", data: $("form").serialize(), success: function (data) {$('#result').html(data) }});   //post if passes validation
+					$('.score').hide();
+					$.ajax({
+						type: "POST",
+						url: "/Exam/Index",
+						data: $("form").serialize(),
+						success: function (data) {
+							$('#result').html(data);
+							$('.score').show();
+						}
+					});   //post if passes validation
 				}
 				return submitme;                                                    //return true or false depending if passed validation
 			}
@@ -56,12 +64,15 @@
 		background-color: lightcoral;
 	}
 </style>
-<div class="score errorDiv alert-info">
-	<strong>
-		Your grade is:
-		@Html.DisplayFor(model => Model.GradePoint)%
-	</strong>
-</div><div id="result"></div>                 <!--Container is filled with the graded exam-->
+
+<div id="result">
+	<div class="score alert-info" style="display:none;">
+		<strong>
+			Your grade is:
+			@Html.DisplayFor(model => model.GradePoint)%
+		</strong>
+	</div>
+</div>                 <!--Container is filled with the graded exam-->
 <div id="first">
 	<!--this div is hidden after posting exam-->
 	<h2>Common Sense</h2>

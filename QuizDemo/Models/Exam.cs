@@ -8,7 +8,7 @@ namespace QuizDemo.Models
 {
     public class Exam
     {
-        public static readonly int NUMBER_OF_QUESTIONS = 5;     //constant: number of questions to give user
+        public static readonly int NUMBER_OF_QUESTIONS =2;     //constant: number of questions to give user
         public static readonly double GRADE_POINT_SCALE = 100;  //constant: maximum score
         public List<Question> Questions { get; set; }           //iterable list of Questions for an Exam
         public double GradePoint { get; set; }                       //grade
@@ -51,7 +51,7 @@ namespace QuizDemo.Models
         public Exam Grade(ref ExamContext db, Exam exam)
         {
             Exam graded = new Exam();
-            exam.GradePoint = GRADE_POINT_SCALE;                                                       //ensure the grade wasn't modified prior to grading
+            graded.GradePoint = GRADE_POINT_SCALE;                                                       //ensure the grade wasn't modified prior to grading
             double questionValue = GRADE_POINT_SCALE / exam.Questions.Count;                      //questionValue -> the amount that each question is worth
             foreach (Question question in exam.Questions)                           //for every exam question, see if the selected answer matches the correct answer
             {
@@ -76,7 +76,7 @@ namespace QuizDemo.Models
                     graded.AddQuestion(correctAnswer);                              //
                     if (correctAnswer.CorrectId != question.CorrectId)              //the user answer is returned in Question.CorrectID
                     {
-                        exam.GradePoint = exam.GradePoint - questionValue;                    //if the answer is incorrect then subtract the appropriate points for percentage
+                        graded.GradePoint = graded.GradePoint - questionValue;                    //if the answer is incorrect then subtract the appropriate points for percentage
                     }                                                               //  Because this is a test of common sense, subtracting should HOPEFULLY save some operations
                 }
                 else throw new Exception("User must provide an answer for each question.");
